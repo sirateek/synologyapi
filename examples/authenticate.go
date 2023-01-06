@@ -16,7 +16,7 @@ func examples() {
 		SSL:  true,
 	})
 
-	sid, err := api.Authenticate().Login(models.ApiCredential{
+	sid, err := api.Authenticate().Login(&models.ApiCredential{
 		Account: "user",
 		Passwd:  "password",
 		Format:  "sid",

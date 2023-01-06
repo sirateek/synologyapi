@@ -16,7 +16,7 @@ type authenticate struct {
 }
 
 type Authenticate interface {
-	Login(credential models.ApiCredential) (sid string, err error)
+	Login(credential *models.ApiCredential) (sid string, err error)
 }
 
 func NewAuthenticate(baseApi BaseApi) Authenticate {
@@ -27,7 +27,7 @@ func NewAuthenticate(baseApi BaseApi) Authenticate {
 	}
 }
 
-func (a *authenticate) Login(credential models.ApiCredential) (string, error) {
+func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
 	// Prepare the query params.
 	value, err := query.Values(credential)
 	if err != nil {
@@ -63,6 +63,10 @@ func (a *authenticate) Login(credential models.ApiCredential) (string, error) {
 	json.Unmarshal(objmap["data"], &authenticateResponse)
 
 	credential.SetSID(authenticateResponse.Sid)
-	a.BaseApi.ApiCredential = &credential
+	a.BaseApi.ApiCredential = credential
 	return authenticateResponse.Sid, nil
+}
+
+func (a *authenticate) ReAuthenticate() (string, error) {
+	return a.Login(a.BaseApi.ApiCredential)
 }
