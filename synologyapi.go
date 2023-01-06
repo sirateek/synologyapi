@@ -7,10 +7,12 @@ import (
 type synologyApi struct {
 	authenticate Authenticate
 	baseApi      BaseApi
+	infoApi      InfoApi
 }
 
 type SynologyApi interface {
 	Authenticate() Authenticate
+	Info() InfoApi
 }
 
 // A Facade pattern, Every one should create this instance before usage.
@@ -29,4 +31,11 @@ func (s *synologyApi) Authenticate() Authenticate {
 		s.authenticate = NewAuthenticate(s.baseApi)
 	}
 	return s.authenticate
+}
+
+func (s *synologyApi) Info() InfoApi {
+	if s.infoApi == nil {
+		s.infoApi = NewInfo(s.baseApi)
+	}
+	return s.infoApi
 }
