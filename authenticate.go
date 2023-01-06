@@ -3,7 +3,10 @@ package synologyapi
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"math/rand"
+	"net/url"
 
 	"github.com/google/go-querystring/query"
 	"github.com/sirateek/synologyapi/models"
@@ -17,6 +20,8 @@ type authenticate struct {
 
 type Authenticate interface {
 	Login(credential *models.ApiCredential) (sid string, err error)
+	ReAuthenticate() (string, error)
+	Logout() error
 }
 
 func NewAuthenticate(baseApi BaseApi) Authenticate {
@@ -28,6 +33,10 @@ func NewAuthenticate(baseApi BaseApi) Authenticate {
 }
 
 func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
+	if credential.Session == "" {
+		credential.Session = fmt.Sprint(rand.Intn(100))
+	}
+
 	// Prepare the query params.
 	value, err := query.Values(credential)
 	if err != nil {
@@ -44,6 +53,7 @@ func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
 	}
 	req.URL.RawQuery = value.Encode()
 
+	// Send request
 	response, err := a.GetHttpClient().Do(req)
 	if err != nil {
 		return "", err
@@ -69,4 +79,27 @@ func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
 
 func (a *authenticate) ReAuthenticate() (string, error) {
 	return a.Login(a.BaseApi.ApiCredential)
+}
+
+func (a *authenticate) Logout() error {
+	value := url.Values{}
+
+	value.Add("api", a.Api)
+	value.Add("method", "logout")
+	value.Add("version", "1")
+	value.Add("session", a.BaseApi.ApiCredential.Session)
+
+	// Inject the param into the request.
+	req, err := a.GetNewHttpRequest(GET, a.cgiPath)
+	if err != nil {
+		return err
+	}
+	req.URL.RawQuery = value.Encode()
+
+	// Send request
+	_, err = a.GetHttpClient().Do(req)
+	if err != nil {
+		return err
+	}
+	return nil
 }

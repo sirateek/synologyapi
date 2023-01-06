@@ -26,4 +26,8 @@ func examples() {
 
 	// You can start calling other apis without any futher interaction with Authenticate api
 	// The `Login()` method just return the sid incase you need it.
+
+	// After that, You can call logout to clear the session.
+	err = api.Authenticate().Logout()
+	fmt.Print("Logout Err: ", err)
 }
