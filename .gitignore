@@ -16,3 +16,6 @@
 
 # Mac File System
 *.DS_Store
+
+# Main file
+main/*
