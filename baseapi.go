@@ -1,10 +1,13 @@
 package synologyapi
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/sirateek/synologyapi/models"
+	"github.com/sirupsen/logrus"
 )
 
 type HttpMethod string
@@ -26,7 +29,7 @@ type BaseApi struct {
 	ApiCredential *models.ApiCredential
 }
 
-func (b *BaseApi) GetHttpClient() *http.Client {
+func (b *BaseApi) getHttpClient() *http.Client {
 	if b.HttpClient == nil {
 		b.HttpClient = &http.Client{}
 	}
@@ -41,4 +44,33 @@ func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, cgiPath string) (*htt
 	}
 	url := fmt.Sprintf(urlScheme, protocol, b.ApiDetails.Host, b.ApiDetails.Port, cgiPath)
 	return http.NewRequest(string(httpMethod), url, nil)
+}
+
+func (b *BaseApi) SendRequest(req *http.Request, targetResponse any) error {
+	// Http Client
+	client := b.getHttpClient()
+
+	if b.ApiCredential != nil {
+		sid := b.ApiCredential.GetSID()
+		if sid != "" {
+			req.URL.RawQuery += fmt.Sprint("&_sid=", sid)
+			logrus.Trace("Adding _sid to the query")
+		}
+	}
+
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	// Read all response
+	resBodyByte, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	if targetResponse == nil {
+		return nil
+	}
+	err = json.Unmarshal(resBodyByte, targetResponse)
+	return err
 }

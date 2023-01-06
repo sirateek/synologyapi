@@ -1,15 +1,13 @@
 package synologyapi
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/url"
 
 	"github.com/google/go-querystring/query"
 	"github.com/sirateek/synologyapi/models"
+	"github.com/sirupsen/logrus"
 )
 
 type authenticate struct {
@@ -53,28 +51,16 @@ func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
 	}
 	req.URL.RawQuery = value.Encode()
 
-	// Send request
-	response, err := a.GetHttpClient().Do(req)
+	var targetResponse models.Response[models.AuthenticateResponse]
+	err = a.SendRequest(req, &targetResponse)
+	logrus.Debug(targetResponse)
 	if err != nil {
 		return "", err
 	}
-	var objmap map[string]json.RawMessage
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	json.Unmarshal(body, &objmap)
-	if string(objmap["success"]) == "false" {
-		return "", errors.New("Login failed")
-	}
 
-	// Parse SID from response
-	var authenticateResponse models.AuthenticateResponse
-	json.Unmarshal(objmap["data"], &authenticateResponse)
-
-	credential.SetSID(authenticateResponse.Sid)
+	credential.SetSID(targetResponse.Data.Sid)
 	a.BaseApi.ApiCredential = credential
-	return authenticateResponse.Sid, nil
+	return targetResponse.Data.Sid, nil
 }
 
 func (a *authenticate) ReAuthenticate() (string, error) {
@@ -96,8 +82,8 @@ func (a *authenticate) Logout() error {
 	}
 	req.URL.RawQuery = value.Encode()
 
-	// Send request
-	_, err = a.GetHttpClient().Do(req)
+	var targetResponse models.Response[any]
+	err = a.SendRequest(req, targetResponse)
 	if err != nil {
 		return err
 	}
