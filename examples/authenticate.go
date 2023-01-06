@@ -25,5 +25,5 @@ func examples() {
 	fmt.Println("SID: ", sid, "ERR: ", err)
 
 	// You can start calling other apis without any futher interaction with Authenticate api
-	// The `Login()` method just return the sid our incase you need it.
+	// The `Login()` method just return the sid incase you need it.
 }
