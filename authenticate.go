@@ -12,8 +12,7 @@ import (
 
 type authenticate struct {
 	BaseApi
-	Api     string
-	cgiPath string
+	Api string
 }
 
 type Authenticate interface {
@@ -26,7 +25,6 @@ func NewAuthenticate(baseApi BaseApi) Authenticate {
 	return &authenticate{
 		BaseApi: baseApi,
 		Api:     "SYNO.API.Auth",
-		cgiPath: "auth.cgi",
 	}
 }
 
@@ -45,7 +43,7 @@ func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
 	value.Add("version", "3")
 
 	// Inject the param into the request.
-	req, err := a.GetNewHttpRequest(GET, a.cgiPath)
+	req, err := a.GetNewHttpRequest(GET, a.Api)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +74,7 @@ func (a *authenticate) Logout() error {
 	value.Add("session", a.BaseApi.ApiCredential.Session)
 
 	// Inject the param into the request.
-	req, err := a.GetNewHttpRequest(GET, a.cgiPath)
+	req, err := a.GetNewHttpRequest(GET, a.Api)
 	if err != nil {
 		return err
 	}

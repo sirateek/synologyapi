@@ -2,6 +2,7 @@ package synologyapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,6 +28,7 @@ type BaseApi struct {
 	HttpClient    *http.Client
 	ApiDetails    *ApiDetails
 	ApiCredential *models.ApiCredential
+	ApiInfo       models.ApiInfo
 }
 
 func (b *BaseApi) getHttpClient() *http.Client {
@@ -36,13 +38,25 @@ func (b *BaseApi) getHttpClient() *http.Client {
 	return b.HttpClient
 }
 
-func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, cgiPath string) (*http.Request, error) {
+func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string) (*http.Request, error) {
 	urlScheme := "%s://%s:%d/webapi/%s"
 	protocol := "https"
 	if !b.ApiDetails.SSL {
 		protocol = "http"
 	}
-	url := fmt.Sprintf(urlScheme, protocol, b.ApiDetails.Host, b.ApiDetails.Port, cgiPath)
+
+	value, ok := b.ApiInfo[api]
+	if !ok {
+		if api != "SYNO.API.Info" {
+			return nil, errors.New("api is not found")
+		}
+		value = models.ApiDetails{
+			Path:       "entry.cgi",
+			MinVersion: 1,
+			Maxversion: 1,
+		}
+	}
+	url := fmt.Sprintf(urlScheme, protocol, b.ApiDetails.Host, b.ApiDetails.Port, value.Path)
 	return http.NewRequest(string(httpMethod), url, nil)
 }
 

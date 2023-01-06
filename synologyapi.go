@@ -16,14 +16,19 @@ type SynologyApi interface {
 }
 
 // A Facade pattern, Every one should create this instance before usage.
-func NewSynologyApi(apiDetails *ApiDetails) SynologyApi {
+func NewSynologyApi(apiDetails *ApiDetails) (SynologyApi, error) {
 	api := &synologyApi{
 		baseApi: BaseApi{
 			HttpClient: &http.Client{},
 			ApiDetails: apiDetails,
 		},
 	}
-	return api
+	apiInfo, err := api.Info().GetApisInfo()
+	if err != nil {
+		return api, err
+	}
+	api.baseApi.ApiInfo = apiInfo.Data
+	return api, nil
 }
 
 func (s *synologyApi) Authenticate() Authenticate {

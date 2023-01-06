@@ -8,8 +8,7 @@ import (
 
 type infoApi struct {
 	BaseApi
-	Api     string
-	cgiPath string
+	Api string
 }
 
 type InfoApi interface {
@@ -20,7 +19,6 @@ func NewInfo(baseApi BaseApi) InfoApi {
 	return &infoApi{
 		BaseApi: baseApi,
 		Api:     "SYNO.API.Info",
-		cgiPath: "query.cgi",
 	}
 }
 
@@ -31,7 +29,7 @@ func (i *infoApi) GetApisInfo() (*models.Response[models.ApiInfo], error) {
 	value.Add("version", "1")
 	value.Add("query", "all")
 
-	req, err := i.GetNewHttpRequest(GET, i.cgiPath)
+	req, err := i.GetNewHttpRequest(GET, i.Api)
 	if err != nil {
 		return nil, err
 	}
