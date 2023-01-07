@@ -67,8 +67,8 @@ func (b *BaseApi) SendRequest(req *http.Request, targetResponse any) error {
 	// Http Client
 	client := b.getHttpClient()
 
-	if b.apiCredentialState != nil {
-		logrus.Trace("ApiCredential is not nil")
+	if b.apiCredentialState != nil && !b.apiCredentialState.isSignedOut {
+		logrus.Trace("ApiCredential is not nil and is not signed out")
 		sid := b.apiCredentialState.sid
 		if sid != "" {
 			req.URL.RawQuery += fmt.Sprint("&_sid=", sid)

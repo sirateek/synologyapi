@@ -1,7 +1,10 @@
 package synologyapi
 
 import (
+	"errors"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 type synologyApi struct {
@@ -18,6 +21,10 @@ type SynologyApi interface {
 	SetApiCredentialState(credentialState *apiCredentialState)
 }
 
+var (
+	ErrGetApiInfo error = errors.New("there was a problem while getting the api spec from your synology.")
+)
+
 // A Facade pattern, Every one should create this instance before usage.
 func NewSynologyApi(apiEndpoint *ApiEndpoint) (SynologyApi, error) {
 	api := &synologyApi{
@@ -28,7 +35,8 @@ func NewSynologyApi(apiEndpoint *ApiEndpoint) (SynologyApi, error) {
 	}
 	apiInfo, err := api.Info().GetApisInfo()
 	if err != nil {
-		return api, err
+		logrus.Error("Get API Info error: ", err)
+		return api, ErrGetApiInfo
 	}
 	api.baseApi.ApiInfo = apiInfo.Data
 	return api, nil
