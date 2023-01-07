@@ -21,9 +21,9 @@ type Authenticate interface {
 	Logout() error
 }
 
-func NewAuthenticate(baseApi BaseApi) Authenticate {
+func NewAuthenticate(baseApi *BaseApi) Authenticate {
 	return &authenticate{
-		BaseApi: baseApi,
+		BaseApi: *baseApi,
 		Api:     "SYNO.API.Auth",
 	}
 }
@@ -56,8 +56,6 @@ func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
 		return "", err
 	}
 
-	credential.SetSID(targetResponse.Data.Sid)
-	a.BaseApi.ApiCredential = credential
 	return targetResponse.Data.Sid, nil
 }
 

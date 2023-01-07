@@ -65,13 +65,14 @@ func (b *BaseApi) SendRequest(req *http.Request, targetResponse any) error {
 	client := b.getHttpClient()
 
 	if b.ApiCredential != nil {
+		logrus.Trace("ApiCredential is not nil")
 		sid := b.ApiCredential.GetSID()
 		if sid != "" {
 			req.URL.RawQuery += fmt.Sprint("&_sid=", sid)
 			logrus.Trace("Adding _sid to the query")
 		}
 	}
-
+	fmt.Println(req)
 	response, err := client.Do(req)
 	if err != nil {
 		return err
