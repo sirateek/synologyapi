@@ -1,5 +1,7 @@
 package models
 
+import "encoding/json"
+
 type CertificateList struct {
 	Certificates []Certificate `json:"certificates"`
 }
@@ -14,7 +16,7 @@ type Certificate struct {
 	Renewable          bool                 `json:"renewable"`
 	Services           []CertificateService `json:"services"`
 	SignatureAlgorithm string               `json:"signature_algorithm"`
-	Subject            string               `json:"subject"`
+	Subject            json.RawMessage      `json:"subject"`
 	UserDeletable      bool                 `json:"user_deletable"`
 	ValidFrom          string               `json:"valid_from"`
 	ValidTill          string               `json:"valid_till"`

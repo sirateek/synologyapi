@@ -4,7 +4,6 @@ import (
 	"net/url"
 
 	"github.com/sirateek/synologyapi/models"
-	"github.com/sirupsen/logrus"
 )
 
 type certificateApi struct {
@@ -40,6 +39,5 @@ func (c *certificateApi) ListCertificate() error {
 	if err != nil {
 		return err
 	}
-	logrus.Info(targetResponse)
 	return nil
 }

@@ -10,78 +10,95 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type authenticate struct {
-	BaseApi
-	Api string
+type authenticateApi struct {
+	baseApi *BaseApi
+	Api     string
 }
 
-type Authenticate interface {
-	Login(credential *models.ApiCredential) (sid string, err error)
-	ReAuthenticate() (string, error)
-	Logout() error
+type AuthenticateApi interface {
+	Login(credential models.ApiCredential) (apiCredentialState, error)
+	Logout(credentialState *apiCredentialState) error
 }
 
-func NewAuthenticate(baseApi *BaseApi) Authenticate {
-	return &authenticate{
-		BaseApi: *baseApi,
+type apiCredentialState struct {
+	account     string `url:"account"`
+	passwd      string `url:"passwd"`
+	session     string `url:"session,omitempty"`
+	format      string `url:"format,omitempty"`
+	otpCode     string `url:"otp_code,omitempty"`
+	sid         string
+	isSignedOut bool
+}
+
+func NewAuthenticate(baseApi *BaseApi) AuthenticateApi {
+	return &authenticateApi{
+		baseApi: baseApi,
 		Api:     "SYNO.API.Auth",
 	}
 }
 
-func (a *authenticate) Login(credential *models.ApiCredential) (string, error) {
+func (a *authenticateApi) Login(credential models.ApiCredential) (state apiCredentialState, err error) {
 	if credential.Session == "" {
 		credential.Session = fmt.Sprint(rand.Intn(100))
 	}
 
+	var sid string
+
 	// Prepare the query params.
 	value, err := query.Values(credential)
 	if err != nil {
-		return "", err
+		return state, err
 	}
 	value.Add("api", a.Api)
 	value.Add("method", "login")
 	value.Add("version", "3")
 
 	// Inject the param into the request.
-	req, err := a.GetNewHttpRequest(GET, a.Api)
+	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api)
 	if err != nil {
-		return "", err
+		return state, err
 	}
 	req.URL.RawQuery = value.Encode()
 
 	var targetResponse models.Response[models.AuthenticateResponse]
-	err = a.SendRequest(req, &targetResponse)
+	err = a.baseApi.SendRequest(req, &targetResponse)
 	logrus.Debug(targetResponse)
 	if err != nil {
-		return "", err
+		return state, err
 	}
+	sid = targetResponse.Data.Sid
 
-	return targetResponse.Data.Sid, nil
+	return apiCredentialState{
+		account:     credential.Account,
+		passwd:      credential.Passwd,
+		format:      credential.Format,
+		otpCode:     credential.OtpCode,
+		session:     credential.Session,
+		sid:         sid,
+		isSignedOut: false,
+	}, nil
 }
 
-func (a *authenticate) ReAuthenticate() (string, error) {
-	return a.Login(a.BaseApi.ApiCredential)
-}
-
-func (a *authenticate) Logout() error {
+func (a *authenticateApi) Logout(credentialState *apiCredentialState) error {
 	value := url.Values{}
 
 	value.Add("api", a.Api)
 	value.Add("method", "logout")
 	value.Add("version", "1")
-	value.Add("session", a.BaseApi.ApiCredential.Session)
+	value.Add("session", credentialState.session)
 
 	// Inject the param into the request.
-	req, err := a.GetNewHttpRequest(GET, a.Api)
+	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api)
 	if err != nil {
 		return err
 	}
 	req.URL.RawQuery = value.Encode()
 
 	var targetResponse models.Response[any]
-	err = a.SendRequest(req, targetResponse)
+	err = a.baseApi.SendRequest(req, &targetResponse)
 	if err != nil {
 		return err
 	}
+	credentialState.isSignedOut = true
 	return nil
 }

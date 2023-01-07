@@ -14,21 +14,24 @@ import (
 type HttpMethod string
 
 const (
-	GET  HttpMethod = "GET"
-	POST HttpMethod = "POST"
+	GET HttpMethod = "GET"
 )
 
-type ApiDetails struct {
+type ApiEndpoint struct {
 	Host string
 	Port int
 	SSL  bool
 }
 
 type BaseApi struct {
-	HttpClient    *http.Client
-	ApiDetails    *ApiDetails
-	ApiCredential *models.ApiCredential
-	ApiInfo       models.ApiInfo
+	HttpClient         *http.Client
+	ApiEndpoint        *ApiEndpoint
+	apiCredentialState *apiCredentialState
+	ApiInfo            models.ApiInfo
+}
+
+func (b *BaseApi) SetApiCredentialState(credentialState *apiCredentialState) {
+	b.apiCredentialState = credentialState
 }
 
 func (b *BaseApi) getHttpClient() *http.Client {
@@ -41,7 +44,7 @@ func (b *BaseApi) getHttpClient() *http.Client {
 func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string) (*http.Request, error) {
 	urlScheme := "%s://%s:%d/webapi/%s"
 	protocol := "https"
-	if !b.ApiDetails.SSL {
+	if !b.ApiEndpoint.SSL {
 		protocol = "http"
 	}
 
@@ -56,7 +59,7 @@ func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string) (*http.Re
 			Maxversion: 1,
 		}
 	}
-	url := fmt.Sprintf(urlScheme, protocol, b.ApiDetails.Host, b.ApiDetails.Port, value.Path)
+	url := fmt.Sprintf(urlScheme, protocol, b.ApiEndpoint.Host, b.ApiEndpoint.Port, value.Path)
 	return http.NewRequest(string(httpMethod), url, nil)
 }
 
@@ -64,15 +67,15 @@ func (b *BaseApi) SendRequest(req *http.Request, targetResponse any) error {
 	// Http Client
 	client := b.getHttpClient()
 
-	if b.ApiCredential != nil {
+	if b.apiCredentialState != nil {
 		logrus.Trace("ApiCredential is not nil")
-		sid := b.ApiCredential.GetSID()
+		sid := b.apiCredentialState.sid
 		if sid != "" {
 			req.URL.RawQuery += fmt.Sprint("&_sid=", sid)
 			logrus.Trace("Adding _sid to the query")
 		}
 	}
-	fmt.Println(req)
+	logrus.Debug("Request: ", req)
 	response, err := client.Do(req)
 	if err != nil {
 		return err
@@ -82,6 +85,8 @@ func (b *BaseApi) SendRequest(req *http.Request, targetResponse any) error {
 	if err != nil {
 		return err
 	}
+	logrus.Debug("Response: ", response)
+	logrus.Debug("Response Body: ", string(resBodyByte))
 
 	if targetResponse == nil {
 		return nil

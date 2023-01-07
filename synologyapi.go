@@ -2,29 +2,28 @@ package synologyapi
 
 import (
 	"net/http"
-
-	"github.com/sirateek/synologyapi/models"
 )
 
 type synologyApi struct {
-	authenticate   Authenticate
+	authenticate   AuthenticateApi
 	baseApi        BaseApi
 	infoApi        InfoApi
 	certificateApi CertificateApi
 }
 
 type SynologyApi interface {
-	Authenticate() Authenticate
+	Authenticate() AuthenticateApi
 	Info() InfoApi
 	Certificate() CertificateApi
+	SetApiCredentialState(credentialState *apiCredentialState)
 }
 
 // A Facade pattern, Every one should create this instance before usage.
-func NewSynologyApi(apiDetails *ApiDetails, credential *models.ApiCredential) (SynologyApi, error) {
+func NewSynologyApi(apiEndpoint *ApiEndpoint) (SynologyApi, error) {
 	api := &synologyApi{
 		baseApi: BaseApi{
-			HttpClient: &http.Client{},
-			ApiDetails: apiDetails,
+			HttpClient:  &http.Client{},
+			ApiEndpoint: apiEndpoint,
 		},
 	}
 	apiInfo, err := api.Info().GetApisInfo()
@@ -32,16 +31,14 @@ func NewSynologyApi(apiDetails *ApiDetails, credential *models.ApiCredential) (S
 		return api, err
 	}
 	api.baseApi.ApiInfo = apiInfo.Data
-
-	_, err = api.Authenticate().Login(credential)
-	if err != nil {
-		return api, err
-	}
-	api.baseApi.ApiCredential = credential
 	return api, nil
 }
 
-func (s *synologyApi) Authenticate() Authenticate {
+func (s *synologyApi) SetApiCredentialState(credentialState *apiCredentialState) {
+	s.baseApi.apiCredentialState = credentialState
+}
+
+func (s *synologyApi) Authenticate() AuthenticateApi {
 	if s.authenticate == nil {
 		s.authenticate = NewAuthenticate(&s.baseApi)
 	}
