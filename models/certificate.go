@@ -1,7 +1,5 @@
 package models
 
-import "encoding/json"
-
 type CertificateList struct {
 	Certificates []Certificate `json:"certificates"`
 }
@@ -16,10 +14,18 @@ type Certificate struct {
 	Renewable          bool                 `json:"renewable"`
 	Services           []CertificateService `json:"services"`
 	SignatureAlgorithm string               `json:"signature_algorithm"`
-	Subject            json.RawMessage      `json:"subject"`
+	Subject            CertificateSubject   `json:"subject"`
 	UserDeletable      bool                 `json:"user_deletable"`
 	ValidFrom          string               `json:"valid_from"`
 	ValidTill          string               `json:"valid_till"`
+}
+
+type CertificateSubject struct {
+	City         string   `json:"city"`
+	CommonName   string   `json:"common_name"`
+	Country      string   `json:"country"`
+	Organization string   `json:"organization"`
+	SubAltName   []string `json:"sub_alt_name"`
 }
 
 type CertificateIssuer struct {
