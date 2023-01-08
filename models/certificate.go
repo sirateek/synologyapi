@@ -44,3 +44,7 @@ type CertificateService struct {
 	Subscriber      string `json:"subscriber"`
 	UserSetable     bool   `json:"user_setable"`
 }
+
+type CertificateCreateResponse struct {
+	Id string `json:"id"`
+}

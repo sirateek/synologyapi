@@ -53,7 +53,7 @@ func (a *authenticateApi) Login(credential models.ApiCredential) (state apiCrede
 	value.Add("method", "login")
 
 	// Inject the param into the request.
-	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api)
+	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api, nil)
 	if err != nil {
 		return state, err
 	}
@@ -86,7 +86,7 @@ func (a *authenticateApi) Logout(credentialState *apiCredentialState) error {
 	value.Add("session", credentialState.session)
 
 	// Inject the param into the request.
-	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api)
+	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api, nil)
 	if err != nil {
 		return err
 	}

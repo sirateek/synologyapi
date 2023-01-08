@@ -42,7 +42,7 @@ func (b *BaseApi) getHttpClient() *http.Client {
 	return b.HttpClient
 }
 
-func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string) (*http.Request, error) {
+func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string, body io.Reader) (*http.Request, error) {
 	urlScheme := "%s://%s:%d/webapi/%s"
 	protocol := "https"
 	if !b.ApiEndpoint.SSL {
@@ -62,7 +62,8 @@ func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string) (*http.Re
 	}
 
 	url := fmt.Sprintf(urlScheme, protocol, b.ApiEndpoint.Host, b.ApiEndpoint.Port, value.Path)
-	req, err := http.NewRequest(string(httpMethod), url, nil)
+	req, err := http.NewRequest(string(httpMethod), url, body)
+
 	if err != nil {
 		return req, err
 	}

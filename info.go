@@ -28,7 +28,7 @@ func (i *infoApi) GetApisInfo() (*models.Response[models.ApiInfo], error) {
 	value.Add("method", "query")
 	value.Add("query", "all")
 
-	req, err := i.GetNewHttpRequest(GET, i.Api)
+	req, err := i.GetNewHttpRequest(GET, i.Api, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,7 @@ type SynologyApi interface {
 }
 
 var (
-	ErrGetApiInfo error = errors.New("there was a problem while getting the api spec from your synology.")
+	ErrGetApiInfo error = errors.New("there was a problem while getting the api spec from your synology")
 )
 
 // A Facade pattern, Every one should create this instance before usage.
