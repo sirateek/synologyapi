@@ -51,14 +51,13 @@ func (a *authenticateApi) Login(credential models.ApiCredential) (state apiCrede
 	}
 	value.Add("api", a.Api)
 	value.Add("method", "login")
-	value.Add("version", "3")
 
 	// Inject the param into the request.
 	req, err := a.baseApi.GetNewHttpRequest(GET, a.Api)
 	if err != nil {
 		return state, err
 	}
-	req.URL.RawQuery = value.Encode()
+	req.URL.RawQuery += value.Encode()
 
 	var targetResponse models.Response[models.AuthenticateResponse]
 	err = a.baseApi.SendRequest(req, &targetResponse)
@@ -84,7 +83,6 @@ func (a *authenticateApi) Logout(credentialState *apiCredentialState) error {
 
 	value.Add("api", a.Api)
 	value.Add("method", "logout")
-	value.Add("version", "1")
 	value.Add("session", credentialState.session)
 
 	// Inject the param into the request.
@@ -92,7 +90,7 @@ func (a *authenticateApi) Logout(credentialState *apiCredentialState) error {
 	if err != nil {
 		return err
 	}
-	req.URL.RawQuery = value.Encode()
+	req.URL.RawQuery += value.Encode()
 
 	var targetResponse models.Response[any]
 	err = a.baseApi.SendRequest(req, &targetResponse)

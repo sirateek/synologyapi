@@ -26,7 +26,6 @@ func (i *infoApi) GetApisInfo() (*models.Response[models.ApiInfo], error) {
 	value := url.Values{}
 	value.Add("api", i.Api)
 	value.Add("method", "query")
-	value.Add("version", "1")
 	value.Add("query", "all")
 
 	req, err := i.GetNewHttpRequest(GET, i.Api)
@@ -34,7 +33,7 @@ func (i *infoApi) GetApisInfo() (*models.Response[models.ApiInfo], error) {
 		return nil, err
 	}
 
-	req.URL.RawQuery = value.Encode()
+	req.URL.RawQuery += value.Encode()
 	var targetResponse models.Response[models.ApiInfo]
 	err = i.SendRequest(req, &targetResponse)
 	if err != nil {

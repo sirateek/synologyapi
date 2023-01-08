@@ -14,7 +14,8 @@ import (
 type HttpMethod string
 
 const (
-	GET HttpMethod = "GET"
+	GET  HttpMethod = "GET"
+	POST HttpMethod = "POST"
 )
 
 type ApiEndpoint struct {
@@ -59,15 +60,22 @@ func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string) (*http.Re
 			Maxversion: 1,
 		}
 	}
+
 	url := fmt.Sprintf(urlScheme, protocol, b.ApiEndpoint.Host, b.ApiEndpoint.Port, value.Path)
-	return http.NewRequest(string(httpMethod), url, nil)
+	req, err := http.NewRequest(string(httpMethod), url, nil)
+	if err != nil {
+		return req, err
+	}
+
+	req.URL.RawQuery = fmt.Sprint("version=", value.Maxversion, "&")
+	return req, nil
 }
 
 func (b *BaseApi) SendRequest(req *http.Request, targetResponse any) error {
 	// Http Client
 	client := b.getHttpClient()
 
-	if b.apiCredentialState != nil && !b.apiCredentialState.isSignedOut {
+	if b.apiCredentialState != nil {
 		logrus.Trace("ApiCredential is not nil and is not signed out")
 		sid := b.apiCredentialState.sid
 		if sid != "" {
