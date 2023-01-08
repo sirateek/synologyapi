@@ -69,6 +69,7 @@ func (b *BaseApi) GetNewHttpRequest(httpMethod HttpMethod, api string, body io.R
 	}
 
 	req.URL.RawQuery = fmt.Sprint("version=", value.Maxversion, "&")
+	req.URL.RawQuery += fmt.Sprint("api=", api, "&")
 	return req, nil
 }
 

@@ -32,7 +32,6 @@ func NewCertificate(baseApi *BaseApi) CertificateApi {
 func (c *certificateApi) ListCertificate() error {
 	value := url.Values{}
 	value.Add("method", "list")
-	value.Add("api", c.Api)
 
 	req, err := c.baseApi.GetNewHttpRequest(GET, c.Api, nil)
 	if err != nil {
@@ -60,7 +59,6 @@ type CertificateUploadDetail struct {
 func (c *certificateApi) UploadCertificate(uploadDetail CertificateUploadDetail) error {
 	value := url.Values{}
 	value.Add("method", "import")
-	value.Add("api", "SYNO.Core.Certificate")
 
 	body := bytes.Buffer{}
 	writer := multipart.NewWriter(&body)
@@ -105,7 +103,7 @@ func (c *certificateApi) UploadCertificate(uploadDetail CertificateUploadDetail)
 	}
 	writer.Close()
 
-	req, err := c.baseApi.GetNewHttpRequest(POST, c.Api, &body)
+	req, err := c.baseApi.GetNewHttpRequest(POST, "SYNO.Core.Certificate", &body)
 	if err != nil {
 		return err
 	}
