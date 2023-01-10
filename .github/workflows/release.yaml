@@ -1,0 +1,32 @@
+name: Release New Version
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Semver
+        id: semver_rel
+        uses: hennejg/github-tag-action@v4.3.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Changelog Builder
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fromTag: ${{ steps.semver_rel.outputs.previous_tag }}
+          toTag: ${{ steps.semver_rel.outputs.new_tag }}
+      - name: Create Github Release
+        uses: mikepenz/action-gh-release@v0.2.0-a03 #softprops/action-gh-release
+        with:
+          body: ${{steps.github_release.outputs.changelog}}
+          tag_name: ${{ steps.semver_rel.outputs.new_tag }}
