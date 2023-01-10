@@ -24,7 +24,6 @@ func NewInfo(baseApi BaseApi) InfoApi {
 
 func (i *infoApi) GetApisInfo() (*models.Response[models.ApiInfo], error) {
 	value := url.Values{}
-	value.Add("api", i.Api)
 	value.Add("method", "query")
 	value.Add("query", "all")
 

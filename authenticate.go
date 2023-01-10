@@ -49,7 +49,6 @@ func (a *authenticateApi) Login(credential models.ApiCredential) (state apiCrede
 	if err != nil {
 		return state, err
 	}
-	value.Add("api", a.Api)
 	value.Add("method", "login")
 
 	// Inject the param into the request.
@@ -80,8 +79,6 @@ func (a *authenticateApi) Login(credential models.ApiCredential) (state apiCrede
 
 func (a *authenticateApi) Logout(credentialState *apiCredentialState) error {
 	value := url.Values{}
-
-	value.Add("api", a.Api)
 	value.Add("method", "logout")
 	value.Add("session", credentialState.session)
 
